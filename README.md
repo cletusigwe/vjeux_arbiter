@@ -1,0 +1,1 @@
+Lets automate [algorithm-arena](https://github.com/Algorithm-Arena/weekly-challenge-36-challenge-running) shall we?
