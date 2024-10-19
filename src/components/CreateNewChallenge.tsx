@@ -16,14 +16,45 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const CreateNewChallenge = () => {
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof newChallengeSchema>>({
     resolver: zodResolver(newChallengeSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      inspiration: "",
+      social_media_post: "",
+      challenge_image: new File([], ""),
+    },
   });
 
-  function onSubmit(values: z.infer<typeof newChallengeSchema>) {
-    console.log("NEW Challenge woohoo!", values);
+  async function onSubmit(values: z.infer<typeof newChallengeSchema>) {
+    const formData = new FormData();
+
+    for (const key of Object.keys(values) as Array<keyof typeof values>) {
+      formData.append(key, values[key] as string | File);
+    }
+
+    const response = await fetch("/api/new_challenge", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      toast({
+        title: "Error creating new challenge:",
+        description: response.statusText,
+        style: { backgroundColor: "#DC2626", color: "white" },
+      });
+      return;
+    }
+    const result = await response.json();
+    if (result.repoUrl) {
+      window.location.href = result.repoUrl;
+    }
   }
   return (
     <div className="flex flex-col items-center">
@@ -42,7 +73,7 @@ const CreateNewChallenge = () => {
               <FormItem>
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="ARC not AGI" {...field} />
+                  <Input type="text" placeholder="ARC not AGI" {...field} />
                 </FormControl>
                 <FormDescription>
                   What is the name of this challenge?
@@ -59,6 +90,7 @@ const CreateNewChallenge = () => {
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Input
+                    type="text"
                     placeholder="Implement a program that solves 3 ARC-AGI problems of your choosing."
                     {...field}
                   />
@@ -120,9 +152,7 @@ const CreateNewChallenge = () => {
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={(e) =>
-                      field.onChange(e.target.files ? e.target.files[0] : null)
-                    }
+                    onChange={(e) => field.onChange(e.target.files?.[0])}
                     className="file:bg-neutral-400 file:rounded-sm text-neutral-400 "
                   />
                 </FormControl>
@@ -141,7 +171,7 @@ const CreateNewChallenge = () => {
               <FormItem>
                 <FormLabel>Award for 1st Position</FormLabel>
                 <FormControl>
-                  <Input placeholder="100" {...field} />
+                  <Input type="number" placeholder="100" {...field} />
                 </FormControl>
                 <FormDescription>
                   Amount in dollars to be awarded to winner
@@ -157,7 +187,7 @@ const CreateNewChallenge = () => {
               <FormItem>
                 <FormLabel>Award for 2nd Position</FormLabel>
                 <FormControl>
-                  <Input placeholder="60" {...field} />
+                  <Input type="number" placeholder="60" {...field} />
                 </FormControl>
                 <FormDescription>
                   Amount in dollars to be awarded to runner-up
@@ -173,7 +203,7 @@ const CreateNewChallenge = () => {
               <FormItem>
                 <FormLabel>Award for 3rd Position</FormLabel>
                 <FormControl>
-                  <Input placeholder="40" {...field} />
+                  <Input type="number" placeholder="40" {...field} />
                 </FormControl>
                 <FormDescription>
                   Amount in dollars to be awarded to second runner-up

@@ -13,16 +13,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const perPage = 4; // Number of items per page
@@ -30,8 +20,27 @@ export default function Home() {
   const [allArenas, setAllArenas] = useState<Arena[] | null>(null);
   const totalPages = Math.ceil((allArenas?.length ?? 0) / perPage);
   const [currentPage, setCurrentPage] = useState(1); // Start from page 1
+  const [isTwitterAuthenticated, setIsTwitterAuthenticated] = useState(false);
+  const [isThreadsAuthenticated, setIsThreadsAuthenticated] = useState(false);
+  const [isGithubAuthenticated, setIsGithubAuthenticated] = useState(false);
 
   useEffect(() => {
+    async function checkAuthentications() {
+      try {
+        const response = await fetch("/api/active_apps");
+        if (!response.ok) {
+          throw new Error("Failed to check authentication");
+        }
+        const { twitterAuth, threadsAuth, githubAuth } = await response.json();
+        setIsTwitterAuthenticated(twitterAuth);
+        setIsThreadsAuthenticated(threadsAuth);
+        setIsGithubAuthenticated(githubAuth);
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      }
+    }
+
+    checkAuthentications();
     async function fetchArenas() {
       setLoading(true);
       try {
@@ -172,24 +181,30 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-5 ">
             <div className="flex gap-3">
-              <a
-                href="/api/twitter/auth"
-                className="text-sm text-markdown_blue border-b border-b-markdown_blue"
-              >
-                authenticate X/twitter
-              </a>
-              <a
-                href="/api/threads/auth"
-                className="text-sm text-markdown_blue border-b border-b-markdown_blue"
-              >
-                authenticate Meta Threads
-              </a>
-              <a
-                href="/api/github/auth"
-                className="text-sm text-markdown_blue border-b border-b-markdown_blue"
-              >
-                authenticate Github
-              </a>
+              {!isTwitterAuthenticated && (
+                <a
+                  href="/api/twitter/auth"
+                  className="text-sm text-markdown_blue border-b border-b-markdown_blue"
+                >
+                  authenticate X/twitter
+                </a>
+              )}
+              {!isThreadsAuthenticated && (
+                <a
+                  href="/api/threads/auth"
+                  className="text-sm text-markdown_blue border-b border-b-markdown_blue"
+                >
+                  authenticate Meta Threads
+                </a>
+              )}
+              {/* {!isGithubAuthenticated && (
+                <a
+                  href="/api/github/auth"
+                  className="text-sm text-markdown_blue border-b border-b-markdown_blue"
+                >
+                  authenticate Github
+                </a>
+              )} */}
             </div>
             <a
               href="/new"

@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenResponse.json();
+    console.log(tokenData);
     const accessToken = tokenData.access_token;
     const userId = tokenData.user_id;
 

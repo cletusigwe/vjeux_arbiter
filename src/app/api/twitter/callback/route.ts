@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
     await set("twitter_access_token", data.access_token);
+    await set("twitter_refresh_token", data.refresh_token);
     return NextResponse.redirect(new URL("/", request.nextUrl));
   } catch (error) {
     console.error("Error getting access token:", error);

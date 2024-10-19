@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     response_type: "code",
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
-    scope: "tweet.read tweet.write users.read offline.access",
+    scope: "tweet.read tweet.write offline.access",
     state: crypto.randomBytes(16).toString("hex"),
     code_challenge: codeChallenge,
     code_challenge_method: "S256",

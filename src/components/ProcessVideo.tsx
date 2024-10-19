@@ -41,36 +41,36 @@ const ProcessVideo = ({ username, onVideoPathChange }: Props) => {
     } else {
       submissionData.append("url", videoUrl);
     }
-    onVideoPathChange("result.processedVideoPath");
+    // onVideoPathChange("result.processedVideoPath");
 
-    // try {
-    //   const response = await fetch("/api/process_video", {
-    //     method: "POST",
-    //     body: submissionData,
-    //   });
+    try {
+      const response = await fetch("/api/process_video", {
+        method: "POST",
+        body: submissionData,
+      });
 
-    //   if (response.ok) {
-    //     const result = await response.json();
-    //     if (result.processedVideoPath) {
-    //       onVideoPathChange(result.processedVideoPath);
-    //       toast({
-    //         title: "Video Processing Started",
-    //         description: `${username}'s video is being processed`,
-    //         style: { backgroundColor: "#181818", color: "white" },
-    //       });
-    //     } else {
-    //       throw new Error("Processed video path not received from server.");
-    //     }
-    //   } else {
-    //     throw new Error("Server response was not ok.");
-    //   }
-    // } catch (error) {
-    //   toast({
-    //     title: "Error",
-    //     description: `Something went wrong when processing ${username}'s video. Please try again.`,
-    //     style: { backgroundColor: "#DC2626", color: "white" },
-    //   });
-    // }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.processedVideoPath) {
+          toast({
+            title: "Video Processing Started",
+            description: `${username}'s video is being processed`,
+            style: { backgroundColor: "#181818", color: "white" },
+          });
+          onVideoPathChange(result.processedVideoPath);
+        } else {
+          throw new Error("Processed video path not received from server.");
+        }
+      } else {
+        throw new Error("Server response was not ok.");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Something went wrong when processing ${username}'s video. Please try again.`,
+        style: { backgroundColor: "#DC2626", color: "white" },
+      });
+    }
   }
   return (
     <div className="flex flex-col w-full max-w-sm space-x-2 gap-3">

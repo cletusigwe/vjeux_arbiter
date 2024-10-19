@@ -59,9 +59,9 @@ export const newChallengeSchema = z.object({
   inspiration: z.string(),
   social_media_post: z.string(),
   challenge_image: z.instanceof(File),
-  first_reward: z.number(),
-  second_reward: z.number(),
-  third_reward: z.number(),
+  first_reward: z.coerce.number().min(0),
+  second_reward: z.coerce.number().min(0),
+  third_reward: z.coerce.number().min(0),
 });
 
 export interface Arena {
