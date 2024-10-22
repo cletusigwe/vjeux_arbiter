@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { Octokit } from "@octokit/rest";
 import { newChallengeSchema } from "@/lib/consts";
+import path from "path";
+import sharp from "sharp";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_PERSONAL_ACCESS_TOKEN,
@@ -58,6 +60,12 @@ export async function POST(req: Request) {
       org: "Algorithm-Arena",
     });
     const weekNumber = repos.length + 1;
+    const imageFilePath = path.join(
+      process.cwd(),
+      "challenge_images",
+      `week_${weekNumber}.jpg`
+    );
+    await sharp(challengeImageBuffer).toFormat("jpg").toFile(imageFilePath);
 
     const { data: repoData } = await octokit.repos.createForAuthenticatedUser({
       name: `weekly-challenge-${weekNumber}-${title
@@ -126,8 +134,54 @@ export async function POST(req: Request) {
       message: "Add challenge image",
       content: imageContent,
     });
+    const imageUrl = `https://raw.githubusercontent.com/${repoData.owner.login}/${repoData.name}/refs/heads/main/illustration.${challengeImageExtension}`;
+    //upload to twitter and threads
+    const twitterPostResult = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/twitter/tweet`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tweets: [
+            { tweet: social_media_post, imageFilePath },
+            {
+              post: `Check out the full details and how to submit:\n${repoData.html_url}`,
+            },
+          ],
+        }),
+      }
+    );
+    const twitterPostJson = await twitterPostResult.json();
+    console.log(twitterPostJson.message);
+    const url =
+      "https://github.com/cletusigwe/weekly-challenge-38-agi-in-brainfuck";
+    const threadsPostResult = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/threads/post`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          posts: [
+            { post: social_media_post, imageUrl },
+            {
+              post: `Check out the full details and how to submit:\n${url}`,
+            },
+          ],
+        }),
+      }
+    );
+    const threadsPostJson = await threadsPostResult.json();
+    console.log(threadsPostJson.message);
 
-    return NextResponse.json({ repoUrl: repoData.html_url });
+    return NextResponse.json({
+      repoUrl: repoData.html_url,
+      tweetUrl: twitterPostJson.tweetUrl,
+      threadsUrl: threadsPostJson.tweetUrl,
+    });
   } catch (error: any) {
     console.error("Error creating repository or file:", error);
     return NextResponse.json(

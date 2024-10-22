@@ -1,4 +1,4 @@
-import { ChallengeAnnouncementData, judgeChallengeSchema } from "@/lib/consts";
+import { ChallengeAnnouncementData } from "@/lib/consts";
 import { NextResponse } from "next/server";
 function parseTwitterUsername(url: string): string | null {
   try {

@@ -1,13 +1,18 @@
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 // import { uploadVideo } from "@/lib/upload_video";
-import { uploadVideo } from "@/lib/upload_video_with_python_script";
+import {
+  uploadImage,
+  uploadVideo,
+} from "@/lib/upload_media_with_python_script";
 import { get } from "@/lib/db_utils";
 
 const TWEET_URL = "https://api.twitter.com/2/tweets";
 
 export async function POST(request: NextRequest) {
-  const { tweets }: { tweets: { tweet: string; videoId?: string }[] } =
+  const {
+    tweets,
+  }: { tweets: { tweet: string; videoId?: string; imageFilePath?: string }[] } =
     await request.json();
 
   if (!tweets || !Array.isArray(tweets) || tweets.length === 0) {
@@ -36,6 +41,16 @@ export async function POST(request: NextRequest) {
           mediaId = await uploadVideo(videoPath);
         } catch (error) {
           throw new Error(`Error while trying to upload video: ${videoPath}`);
+        }
+      }
+
+      if (tweet.imageFilePath) {
+        try {
+          mediaId = await uploadImage(tweet.imageFilePath);
+        } catch (error) {
+          throw new Error(
+            `Error while trying to upload image: ${tweet.imageFilePath}`
+          );
         }
       }
 
@@ -70,7 +85,7 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await response.json();
-      console.log(result)
+      console.log(result);
       postedTweets.push({
         tweet: result,
         url: `https://x.com/${username}/status/${result.data.id}`,

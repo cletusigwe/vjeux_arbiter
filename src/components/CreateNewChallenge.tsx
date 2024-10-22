@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { newChallengeSchema } from "@/lib/consts";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { error } from "console";
 
 const CreateNewChallenge = () => {
   const { toast } = useToast();
@@ -31,29 +33,81 @@ const CreateNewChallenge = () => {
     },
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   async function onSubmit(values: z.infer<typeof newChallengeSchema>) {
-    const formData = new FormData();
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
 
-    for (const key of Object.keys(values) as Array<keyof typeof values>) {
-      formData.append(key, values[key] as string | File);
-    }
+      for (const key of Object.keys(values) as Array<keyof typeof values>) {
+        formData.append(key, values[key] as string | File);
+      }
 
-    const response = await fetch("/api/new_challenge", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await fetch("/api/new_challenge", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        toast({
+          title: "Error creating new challenge:",
+          description: response.statusText,
+          style: { backgroundColor: "#DC2626", color: "white" },
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      const result = await response.json();
+      toast({
+        title: "Successfully Created and Announced New Challenge",
+        description: (
+          <ul className="mt-2 list-disc list-inside flex flex-col gap-2">
+            {result.repoUrl.length > 0 && (
+              <li>
+                <a
+                  href={result.repoUrl}
+                  target="_blank"
+                  className="text-markdown_blue border-b border-b-markdown_blue w-fit mx-auto"
+                >
+                  Github repo
+                </a>
+              </li>
+            )}
+            {result.tweetUrl.length > 0 && (
+              <li>
+                <a
+                  href={result.tweetUrl}
+                  target="_blank"
+                  className="text-markdown_blue border-b border-b-markdown_blue w-fit mx-auto"
+                >
+                  Twitter post
+                </a>
+              </li>
+            )}
+            {result.threadsUrl.length > 0 && (
+              <li>
+                <a
+                  href={result.threadsUrl}
+                  target="_blank"
+                  className="text-markdown_blue border-b border-b-markdown_blue w-fit mx-auto"
+                >
+                  Threads post
+                </a>
+              </li>
+            )}
+          </ul>
+        ),
+        style: { backgroundColor: "#181818", color: "white" },
+      });
+      setIsSubmitting(false);
+    } catch (error) {
       toast({
         title: "Error creating new challenge:",
-        description: response.statusText,
+        description: (error as Error).message,
         style: { backgroundColor: "#DC2626", color: "white" },
       });
-      return;
-    }
-    const result = await response.json();
-    if (result.repoUrl) {
-      window.location.href = result.repoUrl;
+      setIsSubmitting(false);
     }
   }
   return (
@@ -64,7 +118,11 @@ const CreateNewChallenge = () => {
         </h1>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 min-w-[700px]"
+          className={`space-y-8 min-w-[700px] ${
+            isSubmitting
+              ? "brightness-50 grayscale opacity-30 pointer-events-none"
+              : ""
+          }`}
         >
           <FormField
             control={form.control}

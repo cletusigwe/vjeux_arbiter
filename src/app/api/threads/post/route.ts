@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { get } from "@/lib/db_utils";
-import fs from "fs";
-import path from "path";
 
 const THREADS_API_URL = "https://graph.threads.net/v1.0";
 
@@ -9,18 +7,22 @@ async function createMediaContainer(
   userId: string,
   accessToken: string,
   postText: string,
-  mediaType: string,
+  mediaType: "VIDEO" | "IMAGE" | "TEXT",
   quotePostId: string,
   previousPostId?: string,
-  videoUrl?: string
+  mediaUrl?: string
 ) {
   const postUrl = new URL(`${THREADS_API_URL}/${userId}/threads`);
   postUrl.searchParams.append("media_type", mediaType);
   postUrl.searchParams.append("text", postText);
   postUrl.searchParams.append("access_token", accessToken);
 
-  if (mediaType === "VIDEO" && videoUrl) {
-    postUrl.searchParams.append("video_url", videoUrl);
+  if (mediaType === "VIDEO" && mediaUrl) {
+    postUrl.searchParams.append("video_url", mediaUrl);
+  }
+
+  if (mediaType === "IMAGE" && mediaUrl) {
+    postUrl.searchParams.append("image_url", mediaUrl);
   }
 
   const formData = new URLSearchParams();
@@ -106,8 +108,14 @@ async function getPostIds(
 export async function POST(request: NextRequest) {
   const {
     posts,
-  }: { posts: { post: string; quotePost?: string; videoId?: string }[] } =
-    await request.json();
+  }: {
+    posts: {
+      post: string;
+      quotePost?: string;
+      videoId?: string;
+      imageUrl?: string;
+    }[];
+  } = await request.json();
 
   if (!posts || !Array.isArray(posts) || posts.length === 0) {
     return NextResponse.json(
@@ -142,18 +150,6 @@ export async function POST(request: NextRequest) {
       }
 
       if (post.videoId) {
-        const videoPath = path.join(
-          process.cwd(),
-          "processed_videos",
-          `${post.videoId}.mp4`
-        );
-
-        if (!fs.existsSync(videoPath)) {
-          return NextResponse.json(
-            { error: `Video file not found: ${videoPath}` },
-            { status: 400 }
-          );
-        }
         const videoUrl = `https://raw.githubusercontent.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/videos/${post.videoId}.mp4`;
 
         const uploadData = await createMediaContainer(
@@ -164,6 +160,17 @@ export async function POST(request: NextRequest) {
           quotePostId,
           previousPostId,
           videoUrl
+        );
+        mediaContainerID = uploadData.id;
+      } else if (post.imageUrl) {
+        const uploadData = await createMediaContainer(
+          userIdStr,
+          accessToken,
+          post.post,
+          "IMAGE",
+          quotePostId,
+          previousPostId,
+          post.imageUrl
         );
         mediaContainerID = uploadData.id;
       } else {
@@ -179,7 +186,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("Created media id", mediaContainerID);
-      // Wait for video processing before publishing
+      // Wait 60 seconds for facebook servers to finish processing media before publishing
       await new Promise((resolve) => setTimeout(resolve, 60000));
       console.log("Publishing media id", mediaContainerID);
 

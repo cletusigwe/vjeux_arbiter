@@ -39,7 +39,7 @@ async function fetchAllRepos() {
   return allRepos;
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const repos = await fetchAllRepos();
 
