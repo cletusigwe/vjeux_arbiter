@@ -13,17 +13,6 @@ const FinalTouches = ({ formRef, onSubmit }: Props) => {
     <div className="flex gap-5">
       <Button
         type="submit"
-        variant="outline"
-        className="bg-transparent"
-        onClick={() => {
-          console.log("previewing announcement in new tab");
-          // onSubmit(formRef.getValues());
-        }}
-      >
-        Preview Announcement
-      </Button>
-      <Button
-        type="submit"
         onClick={() => {
           console.log("publishing announcements");
           onSubmit(formRef.getValues());

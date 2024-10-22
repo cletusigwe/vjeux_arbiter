@@ -64,10 +64,11 @@ const JudgeChallenge = ({
       githubUserName: submission.authorUsername,
       githubProfileUrl: submission.authorProfileUrl,
       comment: `Not only did he try to save the deer, he also wrote a song about it and a cute video to follow.`,
-      videoId: "video_3",
+      videoId: "hi",
     }))
   );
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof judgeChallengeSchema>>({
     resolver: zodResolver(judgeChallengeSchema),
@@ -99,6 +100,7 @@ const JudgeChallenge = ({
   });
 
   const onSubmit = async (values: z.infer<typeof judgeChallengeSchema>) => {
+    setIsSubmitting(true);
     const errors: string[] = [];
 
     Object.keys(values).forEach((key) => {
@@ -141,19 +143,26 @@ const JudgeChallenge = ({
         ),
         variant: "destructive",
       });
+      setIsSubmitting(false);
       return;
     }
 
-
     //First post to twitter, then threads
-
     const combinedData: ChallengeAnnouncementData = {
       ...values,
       submissionData,
+      repo: repo,
       postToWebsite: "",
     };
-    for (const website of ["twitter", "threads"]) {
-      combinedData.postToWebsite = website as "threads" | "twitter";
+    for (const website of ["github", "twitter", "threads"]) {
+      toast({
+        title: `Announcing results on ${website}`,
+        description: "Watch the server logs for realtime info",
+        style: { backgroundColor: "#F59E0B", color: "black" },
+      });
+      await new Promise((resolve) => setTimeout(resolve, 15000));
+      continue;
+      combinedData.postToWebsite = website as "threads" | "twitter" | "github";
       const announcement = await fetch("/api/announce_winners", {
         method: "POST",
         headers: {
@@ -167,9 +176,13 @@ const JudgeChallenge = ({
         toast({
           title: `Successfully sent post to ${website}`,
           description: (
-            <span>
-              Check it out here <a href={url} target="_blank" className="text-markdown_blue"></a>
-            </span>
+            <a
+              href={url}
+              target="_blank"
+              className="text-markdown_blue border-b border-b-markdown_blue w-fit mx-auto"
+            >
+              Check it out here
+            </a>
           ),
           style: { backgroundColor: "#16A34A", color: "white" },
         });
@@ -180,7 +193,10 @@ const JudgeChallenge = ({
           variant: "destructive",
         });
       }
+      break;
     }
+
+    setIsSubmitting(false);
   };
 
   const updateSubmissionData = (
@@ -238,14 +254,26 @@ const JudgeChallenge = ({
               Deadine: {deadline}
             </span>
           </div>
-          <div className="flex gap-8 items-center ">
+          <div
+            className={`flex gap-8 items-center ${
+              isSubmitting
+                ? "brightness-50 grayscale opacity-30 pointer-events-none"
+                : ""
+            }`}
+          >
             <ChallengePresets formRef={form} />
             <FinalTouches formRef={form} onSubmit={onSubmit} />
             {/**forms are submitted here**/}
           </div>
         </div>
 
-        <div className="w-full lg:max-w-[70%] lg:mx-auto ">
+        <div
+          className={`w-full lg:max-w-[70%] lg:mx-auto  ${
+            isSubmitting
+              ? "brightness-50 grayscale opacity-30 pointer-events-none"
+              : ""
+          }`}
+        >
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

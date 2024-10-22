@@ -41,7 +41,8 @@ export interface JudgeResult {
 
 export interface ChallengeAnnouncementData extends JudgeResult {
   submissionData: SubmissionData[];
-  postToWebsite: "twitter" | "threads" | "";
+  repo: string;
+  postToWebsite: "twitter" | "threads" | "github" | "";
 }
 export const singleSubmissionSchema = z.object({
   comment: z.string().min(2),

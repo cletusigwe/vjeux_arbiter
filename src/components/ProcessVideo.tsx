@@ -100,7 +100,7 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
       }
 
       toast({
-        title: "Processing Log",
+        title: `Processing Log For ${username}`,
         description: event.data,
         style: { backgroundColor: "#F59E0B", color: "black" },
       });

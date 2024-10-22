@@ -9,7 +9,10 @@ process_file() {
   local video_id="$2"
   echo "Processing video  $filename into suitable format for Twitter and Threads using FFmpeg"
   ffmpeg -loglevel error -i "$filename" -c:v libx264 -crf 20 -vf format=yuv420p -c:a aac "processed_videos/${video_id}.mp4"
-  echo "Processed video saved as: ${video_id}.mp4"
+  echo "Processed video for $filename saved as: processed_videos/${video_id}.mp4"
+  echo "Generating thumbnail for processed_videos/${video_id}.mp4"
+  ffmpeg -i "processed_videos/${video_id}.mp4" -ss 00:00:10 -vframes 1 -q:v 2 processed_videos/${video_id}.jpg
+  echo "Thumbnail for processed_videos/${video_id}.mp4 saved at processed_videos/${video_id}.jpg"
 }
 
 # Function to process video from a URL
@@ -19,10 +22,14 @@ process_url() {
   echo "Downloading video from URL: $url"
   yt-dlp -q --no-warnings -o "downloaded_videos/${video_id}.%(ext)s" "$url"
   local downloaded_file=$(yt-dlp --no-warnings --get-filename -o "downloaded_videos/${video_id}.%(ext)s" "$url")
-  echo "Downloaded video as: $downloaded_file"
+  echo "Downloaded video at $url as: $downloaded_file"
   echo "Processing video $downloaded_file into suitable format for Twitter and Threads using FFmpeg"
   ffmpeg -loglevel error -i "$downloaded_file" -c:v libx264 -crf 20 -vf format=yuv420p -c:a aac "processed_videos/${video_id}.mp4"
-  echo "Processed video saved as: ${video_id}.mp4"
+  echo "Processed video for $downloaded_file saved as: ${video_id}.mp4"
+  
+  echo "Generating thumbnail for processed_videos/${video_id}.mp4"
+  ffmpeg -i "processed_videos/${video_id}.mp4" -ss 00:00:10 -vframes 1 -q:v 2 processed_videos/${video_id}.jpg
+  echo "Thumbnail for processed_videos/${video_id}.mp4 saved at processed_videos/${video_id}.jpg"
 }
 
 # Check if at least the URL or file and output video ID is provided

@@ -154,27 +154,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-
-        const uploadVideoToGithubResult = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/github/save_demo`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ videoId: post.videoId }),
-          }
-        );
-
-        if (!uploadVideoToGithubResult.ok) {
-          const errorData = await uploadVideoToGithubResult.json();
-          console.log(errorData);
-          throw new Error(
-            `Error while trying to save the demo video with ID: ${post.videoId} to github: ${errorData.error.message}`
-          );
-        }
-
-        const videoUrl = `https://raw.githubusercontent.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/${post.videoId}.mp4`;
+        const videoUrl = `https://raw.githubusercontent.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/videos/${post.videoId}.mp4`;
 
         const uploadData = await createMediaContainer(
           userIdStr,

@@ -9,28 +9,49 @@ const octokit = new Octokit(options);
 export async function POST(req: Request) {
   const { videoId }: { videoId: string } = await req.json();
   try {
-    const filePath = path.join(
+    const videoFilePath = path.join(
       process.cwd(),
       "processed_videos",
       `${videoId}.mp4`
     );
-    const fileContent = fs.readFileSync(filePath);
+    const thumbnailFilePath = path.join(
+      process.cwd(),
+      "processed_videos",
+      `${videoId}.jpg`
+    );
+    const videoFileContent = fs.readFileSync(videoFilePath);
+    const thumbnailFileContent = fs.readFileSync(thumbnailFilePath);
 
-    const base64Content = fileContent.toString("base64");
+    const videoBase64Content = videoFileContent.toString("base64");
+    const thumbnailBase64Content = thumbnailFileContent.toString("base64");
 
     const owner = process.env.GITHUB_USERNAME!;
     const repo = process.env.GITHUB_DEMO_VIDEOS_REPO!;
-    const pathInRepo = `videos/${videoId}.mp4`;
+    const videoPathInRepo = `videos/${videoId}.mp4`;
+    const thumbnailPathInRepo = `thumbnails/${videoId}.jpg`;
 
-    const { data } = await octokit.repos.createOrUpdateFileContents({
+    const videoUploadResult = await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
-      path: pathInRepo,
+      path: videoPathInRepo,
       message: `Upload video: ${videoId}`,
-      content: base64Content,
+      content: videoBase64Content,
     });
 
-    return NextResponse.json({ message: "File uploaded successfully", data });
+    const thumbnailUploadResult =
+      await octokit.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path: thumbnailPathInRepo,
+        message: `Upload thumbnail: ${videoId}`,
+        content: thumbnailBase64Content,
+      });
+
+    return NextResponse.json({
+      message: "Files uploaded successfully",
+      ...videoUploadResult.data,
+      ...thumbnailUploadResult.data,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";

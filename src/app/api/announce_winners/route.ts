@@ -53,6 +53,7 @@ export async function POST(req: Request) {
     threadsNextAnnounceLink,
     submissionData,
     postToWebsite,
+    repo,
   } = (await req.json()) as ChallengeAnnouncementData;
 
   const twitterThread: { tweet: string; videoId?: string }[] = [
@@ -63,7 +64,29 @@ export async function POST(req: Request) {
     { post: `${postIntro}`, quotePost: threadsAnnounceLink },
   ];
 
+  const githubPosts: { message: string; videoId?: string }[] = [];
+
   for (const submission of submissionData) {
+    //save video and thumbnail
+    console.log("Saving Video and Thumbnail to your file storage repo")
+    const saveVideoToGithubResult = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/github/save_demo`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ videoId: submission.videoId }),
+      }
+    );
+    if (!saveVideoToGithubResult.ok) {
+      const errorData = await saveVideoToGithubResult.json();
+      console.log(errorData);
+      throw new Error(
+        `Error while trying to save the demo video and thumbnail with ID: ${submission.videoId} to github: ${errorData.error.message}`
+      );
+    }
+
     const twitterUrl = submission.socials.find(
       (s) => s.provider == "twitter"
     )?.url;
@@ -86,21 +109,28 @@ export async function POST(req: Request) {
 
     const fallbackGitHubHandle = `${submission.githubUserName}(on github)`;
 
-    const tweetBody = `${twitterHandle ?? fallbackGitHubHandle}. ${
+    const tweetBody = `@${twitterHandle ?? fallbackGitHubHandle}. ${
       submission.comment
     }\n${submission.issueLink}`;
-    const postBody = `${threadsHandle ?? fallbackGitHubHandle}. ${
+    const threadsPostBody = `@${threadsHandle ?? fallbackGitHubHandle}. ${
       submission.comment
     }\n${submission.issueLink}`;
 
+    const githubPostBody = `@${submission.githubUserName}.\n${submission.comment}\n\n[submission](${submission.issueLink})\n\n`;
+
     if (submission.position == 0) {
       twitterThread.push({
-        tweet: `${firstIntro} is ${tweetBody}`,
+        tweet: `${firstIntro} is @${tweetBody}`,
         videoId: submission.videoId,
       });
 
       metaThread.push({
-        post: `${firstIntro} is ${postBody}`,
+        post: `${firstIntro} is ${threadsPostBody}`,
+        videoId: submission.videoId,
+      });
+
+      githubPosts.push({
+        message: `${firstIntro} is ${githubPostBody}`,
         videoId: submission.videoId,
       });
     } else if (submission.position == 1) {
@@ -110,7 +140,12 @@ export async function POST(req: Request) {
       });
 
       metaThread.push({
-        post: `${secondIntro} is ${postBody}`,
+        post: `${secondIntro} is ${threadsPostBody}`,
+        videoId: submission.videoId,
+      });
+
+      githubPosts.push({
+        message: `${secondIntro} is ${githubPostBody}`,
         videoId: submission.videoId,
       });
     } else if (submission.position == 2) {
@@ -119,7 +154,11 @@ export async function POST(req: Request) {
         videoId: submission.videoId,
       });
       metaThread.push({
-        post: `${thirdIntro} is ${postBody}`,
+        post: `${thirdIntro} is ${threadsPostBody}`,
+        videoId: submission.videoId,
+      });
+      githubPosts.push({
+        message: `${thirdIntro} is ${githubPostBody}`,
         videoId: submission.videoId,
       });
     } else {
@@ -128,7 +167,12 @@ export async function POST(req: Request) {
         videoId: submission.videoId,
       });
       metaThread.push({
-        post: `${otherIntro} is ${postBody}`,
+        post: `${otherIntro} is ${threadsPostBody}`,
+        videoId: submission.videoId,
+      });
+
+      githubPosts.push({
+        message: `${otherIntro} is ${githubPostBody}`,
         videoId: submission.videoId,
       });
     }
@@ -171,7 +215,20 @@ export async function POST(req: Request) {
     const threadsPostJson = await threadsPostResult.json();
     console.log(threadsPostJson.message);
     announcementResult.url = threadsPostJson.postUrl;
+  } else if (postToWebsite == "github") {
+    const githubPostResult = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/github/announce_winners`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ winners: githubPosts, repo: repo }),
+      }
+    );
+    const githubPostJson = await githubPostResult.json();
+    console.log(githubPostJson.message);
+    announcementResult.url = githubPostJson.postUrl;
   }
-
   return NextResponse.json(announcementResult);
 }
