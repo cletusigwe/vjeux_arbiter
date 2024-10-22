@@ -46,7 +46,7 @@ const ChallengePresets = ({ formRef }: Props) => {
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="twitter">Twitter</TabsTrigger>
             <TabsTrigger value="threads">Theads</TabsTrigger>
-            <TabsTrigger value="meta_workplace">Workplace</TabsTrigger>
+            {/* <TabsTrigger value="meta_workplace">Workplace</TabsTrigger> */}
           </TabsList>
           <TabsContent value="all" className="mt-5 flex flex-col gap-5">
             <FormField
@@ -204,7 +204,7 @@ const ChallengePresets = ({ formRef }: Props) => {
               )}
             />
           </TabsContent>
-          <TabsContent
+          {/* <TabsContent
             value="meta_workplace"
             className="mt-5 flex flex-col gap-5"
           >
@@ -240,7 +240,7 @@ const ChallengePresets = ({ formRef }: Props) => {
                 </FormItem>
               )}
             />
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </DialogContent>
     </Dialog>

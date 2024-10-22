@@ -16,8 +16,13 @@ export interface ChallengeResult {
   prizes: [number, number, number];
 }
 export interface SubmissionData {
+  position: number;
+  socials: { provider: string; url: string }[];
+  issueLink: string;
+  githubUserName: string;
+  githubProfileUrl: string;
   comment: string;
-  videoPath: string;
+  videoId: string;
 }
 export interface JudgeResult {
   postIntro: string;
@@ -30,33 +35,38 @@ export interface JudgeResult {
   twitterNextAnnounceLink: string;
   threadsAnnounceLink: string;
   threadsNextAnnounceLink: string;
-  meta_workplaceAnnounceLink: string;
-  meta_workplaceNextAnnounceLink: string;
+  // meta_workplaceAnnounceLink: string;
+  // meta_workplaceNextAnnounceLink: string;
+}
+
+export interface ChallengeAnnouncementData extends JudgeResult {
+  submissionData: SubmissionData[];
+  postToWebsite: "twitter" | "threads" | "";
 }
 export const singleSubmissionSchema = z.object({
-  comment: z.string(),
-  videoPath: z.string(),
+  comment: z.string().min(2),
+  videoId: z.string().min(2),
 });
 
 export const judgeChallengeSchema = z.object({
-  postIntro: z.string(),
-  firstIntro: z.string(),
-  secondIntro: z.string(),
-  thirdIntro: z.string(),
-  otherIntro: z.string(),
-  nextChallengeIntro: z.string(),
+  postIntro: z.string().min(2),
+  firstIntro: z.string().min(2),
+  secondIntro: z.string().min(2),
+  thirdIntro: z.string().min(2),
+  otherIntro: z.string().min(2),
+  nextChallengeIntro: z.string().min(2),
   twitterAnnounceLink: z.string().url(),
   twitterNextAnnounceLink: z.string().url(),
   threadsAnnounceLink: z.string().url(),
   threadsNextAnnounceLink: z.string().url(),
-  meta_workplaceAnnounceLink: z.string().url(),
-  meta_workplaceNextAnnounceLink: z.string().url(),
+  // meta_workplaceAnnounceLink: z.string().url(),
+  // meta_workplaceNextAnnounceLink: z.string().url(),
 });
 
 export const newChallengeSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  inspiration: z.string(),
+  title: z.string().min(2),
+  description: z.string().min(2),
+  inspiration: z.string().min(2),
   social_media_post: z.string(),
   challenge_image: z.instanceof(File),
   first_reward: z.coerce.number().min(0),

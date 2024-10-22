@@ -40,3 +40,7 @@ certificates
 db.json
 all_readmes.txt
 .env
+downloaded_videos/*
+processed_videos/*
+logs/*
+dist

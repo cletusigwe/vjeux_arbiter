@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
 
     await set("threads_access_token", accessToken);
     await set("threads_user_id", userId);
-    return NextResponse.redirect(new URL("/", request.nextUrl));
+    return NextResponse.redirect(
+      new URL("/", process.env.NEXT_PUBLIC_BASE_URL)
+    );
   } catch (error) {
     console.error("OAuth callback error:", error);
     return NextResponse.json(

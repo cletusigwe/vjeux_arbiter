@@ -17,7 +17,7 @@ const FinalTouches = ({ formRef, onSubmit }: Props) => {
         className="bg-transparent"
         onClick={() => {
           console.log("previewing announcement in new tab");
-          onSubmit(formRef.getValues());
+          // onSubmit(formRef.getValues());
         }}
       >
         Preview Announcement
@@ -28,7 +28,7 @@ const FinalTouches = ({ formRef, onSubmit }: Props) => {
           console.log("publishing announcements");
           onSubmit(formRef.getValues());
         }}
-        className="bg-orange border-black border-2"
+        className="bg-orange hover:bg-orange hover:bg-opacity-75"
       >
         Publish Announcement
       </Button>

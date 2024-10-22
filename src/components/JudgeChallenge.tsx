@@ -24,8 +24,8 @@ import {
 import ChallengePresets from "./ChallengePresets";
 import FinalTouches from "./FinalTouches";
 import type {
+  ChallengeAnnouncementData,
   ChallengeResult,
-  JudgeResult,
   SubmissionData,
 } from "@/lib/consts";
 import { judgeChallengeSchema, singleSubmissionSchema } from "@/lib/consts";
@@ -35,7 +35,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form } from "@/components/ui/form";
-import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -62,8 +61,10 @@ const JudgeChallenge = ({
       position: index,
       socials: submission.socials,
       issueLink: submission.issueUrl,
-      comment: "",
-      videoPath: "",
+      githubUserName: submission.authorUsername,
+      githubProfileUrl: submission.authorProfileUrl,
+      comment: `Not only did he try to save the deer, he also wrote a song about it and a cute video to follow.`,
+      videoId: "video_3",
     }))
   );
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -71,24 +72,33 @@ const JudgeChallenge = ({
   const form = useForm<z.infer<typeof judgeChallengeSchema>>({
     resolver: zodResolver(judgeChallengeSchema),
     defaultValues: {
-      postIntro: "",
+      postIntro:
+        "Last week, I asked people to help me warn a deer that was about to get killed. Some people did an amazing job. See this thread 🧵",
       firstIntro: `The winner for $${prizes[0]}`,
       secondIntro: `In second place for $${prizes[1]}`,
       thirdIntro: `In third place for $${prizes[2]}`,
       otherIntro: "As honourable mention",
       nextChallengeIntro:
         "If this was fun for you, you can try out this week's challenge",
-      twitterAnnounceLink: "",
-      twitterNextAnnounceLink: "",
-      threadsAnnounceLink: "",
-      threadsNextAnnounceLink: "",
-      meta_workplaceAnnounceLink: "",
-      meta_workplaceNextAnnounceLink: "",
+      twitterAnnounceLink:
+        "https://x.com/0xcletusigwe/status/1848000049101348894",
+      twitterNextAnnounceLink:
+        "https://x.com/0xcletusigwe/status/1848000049101348894",
+      threadsAnnounceLink:
+        "https://www.threads.net/@0xcletusigwe/post/DBbHkOfNCl7",
+      threadsNextAnnounceLink:
+        "https://www.threads.net/@0xcletusigwe/post/DBbHkOfNCl7",
+      // twitterAnnounceLink: "https://x.com/Vjeux/status/1843306532219539839",
+      // twitterNextAnnounceLink: "https://x.com/Vjeux/status/1843306532219539839",
+      // threadsAnnounceLink: "https://www.threads.net/@vjeux/post/DA08w9RPjd_",
+      // threadsNextAnnounceLink:
+      //   "https://www.threads.net/@vjeux/post/DA08w9RPjd_",
+      // meta_workplaceAnnounceLink: "",
+      // meta_workplaceNextAnnounceLink: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof judgeChallengeSchema>) => {
-    console.log("form knows to submit");
+  const onSubmit = async (values: z.infer<typeof judgeChallengeSchema>) => {
     const errors: string[] = [];
 
     Object.keys(values).forEach((key) => {
@@ -103,8 +113,8 @@ const JudgeChallenge = ({
       const commentResult = singleSubmissionSchema.shape.comment.safeParse(
         submission.comment
       );
-      const videoPathResult = singleSubmissionSchema.shape.videoPath.safeParse(
-        submission.videoPath
+      const videoIdResult = singleSubmissionSchema.shape.videoId.safeParse(
+        submission.videoId
       );
 
       if (!commentResult.success) {
@@ -112,9 +122,9 @@ const JudgeChallenge = ({
           `${submissions[index].authorUsername}'s submision has: Invalid comment`
         );
       }
-      if (!videoPathResult.success) {
+      if (!videoIdResult.success) {
         errors.push(
-          `${submissions[index].authorUsername}'s submision has: Invalid video path`
+          `${submissions[index].authorUsername}'s submision has: Invalid video id`
         );
       }
     });
@@ -134,12 +144,43 @@ const JudgeChallenge = ({
       return;
     }
 
-    const combinedData = {
+
+    //First post to twitter, then threads
+
+    const combinedData: ChallengeAnnouncementData = {
       ...values,
       submissionData,
+      postToWebsite: "",
     };
-    console.log("Combined Data:", combinedData);
-    // TODO submission logic here
+    for (const website of ["twitter", "threads"]) {
+      combinedData.postToWebsite = website as "threads" | "twitter";
+      const announcement = await fetch("/api/announce_winners", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...combinedData }),
+      });
+
+      if (announcement.ok) {
+        const { url } = await announcement.json();
+        toast({
+          title: `Successfully sent post to ${website}`,
+          description: (
+            <span>
+              Check it out here <a href={url} target="_blank" className="text-markdown_blue"></a>
+            </span>
+          ),
+          style: { backgroundColor: "#16A34A", color: "white" },
+        });
+      } else {
+        toast({
+          title: `Posting announcement for ${website} failed`,
+          description: "Check Server Logs For More Details",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const updateSubmissionData = (
@@ -221,11 +262,12 @@ const JudgeChallenge = ({
                   position={index}
                   {...submission}
                   comment={submissionData[index].comment}
-                  onCommentChange={(value) =>
+                  setComment={(value) =>
                     updateSubmissionData(index, "comment", value)
                   }
-                  onVideoPathChange={(value) =>
-                    updateSubmissionData(index, "videoPath", value)
+                  videoId={submissionData[index].videoId}
+                  setVideoId={(value) =>
+                    updateSubmissionData(index, "videoId", value)
                   }
                 />
               ))}
@@ -236,11 +278,12 @@ const JudgeChallenge = ({
                   position={activeId}
                   {...submissions[activeId]}
                   comment={submissionData[activeId].comment}
-                  onCommentChange={(value) =>
+                  setComment={(value) =>
                     updateSubmissionData(activeId, "comment", value)
                   }
-                  onVideoPathChange={(value) =>
-                    updateSubmissionData(activeId, "videoPath", value)
+                  videoId={submissionData[activeId].videoId}
+                  setVideoId={(value) =>
+                    updateSubmissionData(activeId, "videoId", value)
                   }
                 />
               ) : null}

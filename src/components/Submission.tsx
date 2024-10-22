@@ -18,8 +18,9 @@ import Markdown from "react-markdown";
 interface Props extends IssueData {
   position: number;
   comment: string;
-  onCommentChange: (value: string) => void;
-  onVideoPathChange: (value: string) => void;
+  setComment: (value: string) => void;
+  videoId: string;
+  setVideoId: (value: string) => void;
 }
 function formatIsoDate(isoString: string) {
   // Split the date and time components
@@ -77,8 +78,9 @@ const Submission = ({
   issueContent,
   issueUrl,
   comment,
-  onCommentChange,
-  onVideoPathChange,
+  setComment,
+  videoId,
+  setVideoId,
 }: Props) => {
   const [showDetails, setShowDetails] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -175,18 +177,19 @@ const Submission = ({
             </div>
           </CollapsibleTrigger>
         </Collapsible>
-        <div className="w-full mt-10 flex justify-between items-center">
+        <div className="w-full mt-10 flex justify-between">
           <ProcessVideo
             username={authorUsername}
-            onVideoPathChange={onVideoPathChange}
+            videoId={videoId}
+            setVideoId={setVideoId}
           />
-          <div className="flex items-center justify-end">
-            <p className="font-semibold text-neutral-500 mx-5 text-sm">
+          <div className="flex h-fit">
+            <p className="font-semibold text-neutral-500 mx-5 text-sm h-fit">
               Add Comment:
             </p>
             <AddComment
               username={authorUsername}
-              onCommentChange={onCommentChange}
+              setComment={setComment}
               comment={comment}
             />
           </div>

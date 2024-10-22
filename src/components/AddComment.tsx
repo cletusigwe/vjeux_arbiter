@@ -8,29 +8,14 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquareText } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import z from "zod";
-import type {
-  singleSubmissionCommentSchema,
-  singleSubmissionVideoPathSchema,
-} from "@/lib/consts";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 interface Props {
   username: string;
   comment: string;
-  onCommentChange: (value: string) => void;
+  setComment: (value: string) => void;
 }
-const AddComment = ({ username, comment, onCommentChange }: Props) => {
+const AddComment = ({ username, comment, setComment }: Props) => {
   return (
     <Dialog>
       <DialogTrigger>
@@ -51,7 +36,7 @@ const AddComment = ({ username, comment, onCommentChange }: Props) => {
           <Textarea
             id={`comment_on_${username}`}
             value={comment}
-            onChange={(e) => onCommentChange(e.target.value)}
+            onChange={(e) => setComment(e.target.value)}
             className="min-h-[100px]"
             placeholder="Insane how in 1099 bytes he got a fully working minigolf with physics and 52 levels! Using randomly generated circles for obstacles is so clever"
           />
