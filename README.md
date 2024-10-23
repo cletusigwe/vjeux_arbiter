@@ -1,4 +1,6 @@
+<p align="center">
 <img src="./public/images/arbiter_logo.png" width="250"/>
+</p>
 
 ---
 
@@ -16,7 +18,9 @@ Unfortunately, some of these contraints lead me into very deep rabbit holes wher
 Another ugly result of these constraints is that by using self-signed ssl certificates, I have introduced a new bug vector in the code which is famous for being hard to track down. I even suspect my inability to upload files to twitter in the normal expected fashion has something to do with my self-signed certificates.
 
 Running this webapp requires your `.env` file to look something like this:
+
 #### .env.example
+
 ```env
 NEXT_PUBLIC_BASE_URL=https://vjeuxarbiter.com:3000 #url for accessing the website on https
 
@@ -66,6 +70,7 @@ The following permissions are needed on each platform token:
 | threads/access_token                | threads_content_publish    | Allows to post on behalf of user                                                                                              |
 | threads/access_token                | manage_replies             | Allows to reply on behalf of authenticated user which is needed to make a thread of posts and quote posts.                    |
 
+
 ### Screenshots
 
 ![landing_page](./public/screenshots/arbiter_1.png)
@@ -77,6 +82,7 @@ The following permissions are needed on each platform token:
 ![edit_settings_showcase](./public/screenshots/arbiter_4.png)
 
 ![comment_on_submissions_showcase](./public/screenshots/arbiter_5.png)
+
 
 ### How To Setup
 
@@ -133,6 +139,7 @@ mkdir challenge_images
 mkdir logs
 ```
 
+
 ### Running the server
 
 I made a custom nextjs server (located at `server.ts`) that uses `nodemon` to load the certificates and calls `next-server` directly. This tradeoff leads to a slower dev server but I hope you understand.
@@ -161,3 +168,4 @@ npm run dev
 ```
 
 \*\*\* am thinking that it would be more organised to store submission videos for each challenge in the challenge's repo instead of in a different seperate repo.
+
