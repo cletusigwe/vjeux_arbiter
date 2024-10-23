@@ -45,3 +45,4 @@ processed_videos/*
 challenge_images/*
 logs/*
 dist
+.obsidian
