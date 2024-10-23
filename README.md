@@ -6,15 +6,17 @@ Last week (today is 23-10-2024), @vjeux posted a [new challenge](https://github.
 
 While building this I gave myself the following constraints:
 
-|      Constraint       |                                           What it means                                           |                                                                                                                                                                                                                                                                                                                          Consequences                                                                                                                                                                                                                                                                                                                           |
-| ---- | ---- | ---- |
-| Zero maintenance cost and runs entirely on the user local machine | The program must cost vjeux nothing to run. It must only utilise free apis and hosting solutions. |                       <ol><br><li>I used self-signed ssl certificates and a custom nextjs server to fake https, because meta's threads api requires all callback(for authenticating accounts) urls to be https.</li><br><li>My program will download, rencode and store all submission videos in a seperate github repository so that every video can have a public shareable url. Github provides a file service like this in the browser interface but doesnt support it in the api. This decision was also taken to circumvent meta thread's api requirement that all media must be hosted on a public CURLable url.</li><br></ol><br>                       |
-|   Intuitive to use    |                    The program must feel comfortable to use and easy to debug.                    | <ol><li>Ranking submissions is done by dragging submission items in a drag and reorder interface</li><li>User has the choice of either uploading a video file to include in the announcement of challenge result or pasting a link to the video itself to be downloaded with yt-dlp</li><li>User can see real-time logs from the browser during the video processing step which involves downloading submission videos with `ytdlp` and reencoding into a format suitable for both twitter and threads using `ffmpeg`</li><li>I put a lot of effort into making sure that the browser interface looks visually appealing while staying functional.</li><li>The database for storing auth secrets, timestamps and other variable program information is a simple `db.json` file with the schema located at `db_schema.ts`</ol> |
+| Constraint                                                        | What it means                                                                                     | Consequences                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zero maintenance cost and runs entirely on the user local machine | The program must cost vjeux nothing to run. It must only utilise free apis and hosting solutions. | <ol><br><li>I used self-signed ssl certificates and a custom nextjs server to fake https, because meta's threads api requires all callback(for authenticating accounts) urls to be https.</li><br><li>My program will download, rencode and store all submission videos in a seperate github repository so that every video can have a public shareable url. Github provides a file service like this in the browser interface but doesnt support it in the api. This decision was also taken to circumvent meta thread's api requirement that all media must be hosted on a public CURLable url.</li><br></ol><br>                                                                                                                                                                                                           |
+| Intuitive to use                                                  | The program must feel comfortable to use and easy to debug.                                       | <ol><li>Ranking submissions is done by dragging submission items in a drag and reorder interface</li><li>User has the choice of either uploading a video file to include in the announcement of challenge result or pasting a link to the video itself to be downloaded with yt-dlp</li><li>User can see real-time logs from the browser during the video processing step which involves downloading submission videos with `ytdlp` and reencoding into a format suitable for both twitter and threads using `ffmpeg`</li><li>I put a lot of effort into making sure that the browser interface looks visually appealing while staying functional.</li><li>The database for storing auth secrets, timestamps and other variable program information is a simple `db.json` file with the schema located at `db_schema.ts`</ol> |
+
 Unfortunately, some of these contraints lead me into very deep rabbit holes where I emerged with unnecessarily complicated code. One example is that although I believe I had a correct implementation for signing twitter oauth1.0-a requests (located in `src/lib/upload_video.ts`), I could not get it to work for uploading videos to twitter. I ported the same code to python with help from [here](https://github.com/xdevplatform/large-video-upload-python) and it worked. So I restructured the python code as a command line script and then used it for uploading files by spawning a new shell via `child_process.exec`. This means that the user needs to setup a python environment, `pip install oauthlib requests requests-oauthlib` and provide the `.env` file with a `PYTHON_PATH`
 
 Another ugly result of these constraints is that by using self-signed ssl certificates, I have introduced a new bug vector in the code which is famous for being hard to track down. I even suspect my inability to upload files to twitter in the normal expected fashion has something to do with my self-signed certificates.
 
 Running this webapp requires your `.env` file to look something like this:
+#### .env.example
 ```env
 NEXT_PUBLIC_BASE_URL=https://vjeuxarbiter.com:3000 #url for accessing the website on https
 
@@ -53,16 +55,16 @@ PYTHON_PATH= #path to a python binary located in an environment where the python
 
 The following permissions are needed on each platform token:
 
-| Platform/token | Permission scopes on token | Reason |
-| ---- | ---- | ---- |
-| github/personal_access_token | repo.public_repo | App needs this permission to be able to read and commit to user 's public repositories |
-| twitter/oauth-1.0a_token_and secret | Read and Write | The Write permission allows us to upload media on behalf of the user. The Read permission is the default constant permission. |
-| twitter/access_token | tweet.read | Read authenticated twitter user's tweets and obtain tweet ids |
-| twitter/access_token | tweet.write | Post Single Tweets and make Tweet Threads on behalf of the user |
-| twitter/access_token | offline.access | Allows twitter_access_token to be valid until user revokes access instead of only lasting for 2 hours |
-| threads/access_token | threads_basic | Default constant permission |
-| threads/access_token | threads_content_publish | Allows to post on behalf of user |
-| threads/access_token | manage_replies | Allows to reply on behalf of authenticated user which is needed to make a thread of posts and quote posts. |
+| Platform/token                      | Permission scopes on token | Reason                                                                                                                        |
+| ----------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| github/personal_access_token        | repo.public_repo           | App needs this permission to be able to read and commit to user 's public repositories                                        |
+| twitter/oauth-1.0a_token_and secret | Read and Write             | The Write permission allows us to upload media on behalf of the user. The Read permission is the default constant permission. |
+| twitter/access_token                | tweet.read                 | Read authenticated twitter user's tweets and obtain tweet ids                                                                 |
+| twitter/access_token                | tweet.write                | Post Single Tweets and make Tweet Threads on behalf of the user                                                               |
+| twitter/access_token                | offline.access             | Allows twitter_access_token to be valid until user revokes access instead of only lasting for 2 hours                         |
+| threads/access_token                | threads_basic              | Default constant permission                                                                                                   |
+| threads/access_token                | threads_content_publish    | Allows to post on behalf of user                                                                                              |
+| threads/access_token                | manage_replies             | Allows to reply on behalf of authenticated user which is needed to make a thread of posts and quote posts.                    |
 
 ### Screenshots
 
@@ -76,11 +78,12 @@ The following permissions are needed on each platform token:
 
 ![comment_on_submissions_showcase](./public/screenshots/arbiter_5.png)
 
-
 ### How To Setup
+
 #### 1. Install [FFMPEG](https://github.com/FFmpeg/FFmpeg) and [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 
 ##### 2. Setup SSL Root Certificates in ./certificates/root_certificates
+
 ```sh
 cd certificates/root_certificates
 
@@ -90,15 +93,19 @@ openssl x509 -outform pem -in RootCA.pem -out RootCA.crt
 ```
 
 ##### 3. Edit ./domain.ext file with the domain name of your choice under the DNS.2 section
+
 The default is `vjeuxarbiter.com`
 
 ##### 4. Map the domain name you chose to localhost in your /etc/hosts file
+
 Add this to end of file at /etc/hosts
+
 ```config
 127.0.0.1 vjeuxarbiter.com #replace vjeuxarbiter.com with the domain you chose
 ```
 
 ##### 5. Generate your self-signed SSL certificates in ./certificates
+
 ```sh
 cd certificates
 
@@ -108,14 +115,17 @@ openssl x509 -req -sha256 -days 1024 -in localhost.csr -CA root_certificates/Roo
 ```
 
 ##### 6. Setup a python environment
+
 ```sh
 pip -m venv path_to_venv
 source path_to_venv/bin/activate
 pip install oauthlib requests requests-oauthlib
 ```
+
 EDIT `.env` by setting `PYTHON_PATH=path_to_venv/bin/python`
 
 ##### 7. Create Necessary directories
+
 ```sh
 mkdir downloaded_videos
 mkdir processed_videos
@@ -124,10 +134,12 @@ mkdir logs
 ```
 
 ### Running the server
-I made a custom nextjs server (located at `server.ts`) that uses `nodemon` to load the certificates  and calls `next-server` directly. This tradeoff leads to a slower dev server but I hope you understand.
+
+I made a custom nextjs server (located at `server.ts`) that uses `nodemon` to load the certificates and calls `next-server` directly. This tradeoff leads to a slower dev server but I hope you understand.
 Also, each time you start the dev-server you need to remind `nodejs` and `npm` that you are using self-signed certificates.
 
 The process of doing this is these 2 commands:
+
 ```sh
 export NODE_EXTRA_CA_CERTS=certificates/root_certificates/RootCA.crt
 npm set strict-ssl false
@@ -137,14 +149,15 @@ npm install #sometimes npm forgets to refresh, so run this to remind it
 Running this on every server start gets annoying quickly so I abstracted it out into `setup.sh`and I call the script when you run `npm run dev`, so you just need to run your dev commands as usual.
 
 ###### Install dependencies
+
 ```sh
 npm install
 ```
 
 ###### Run your dev server
+
 ```sh
 npm run dev
 ```
 
-
-*** am thinking that it would be more organised to store submission videos for each challenge in the challenge's repo instead of in a different seperate repo.
+\*\*\* am thinking that it would be more organised to store submission videos for each challenge in the challenge's repo instead of in a different seperate repo.
