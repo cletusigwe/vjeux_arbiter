@@ -77,6 +77,7 @@ async function getPostIds(
   allThreadsUrl.searchParams.append("fields", "id,permalink");
   allThreadsUrl.searchParams.append("access_token", accessToken);
 
+  //this response is paginated am assuming the tweet we are looking for is on the first page
   const response = await fetch(allThreadsUrl.toString());
   if (!response.ok) {
     const errorData = await response.json();

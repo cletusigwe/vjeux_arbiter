@@ -63,8 +63,8 @@ const JudgeChallenge = ({
       issueLink: submission.issueUrl,
       githubUserName: submission.authorUsername,
       githubProfileUrl: submission.authorProfileUrl,
-      comment: `Not only did he try to save the deer, he also wrote a song about it and a cute video to follow.`,
-      videoId: "hi",
+      comment: "",
+      videoId: "",
     }))
   );
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -73,22 +73,18 @@ const JudgeChallenge = ({
   const form = useForm<z.infer<typeof judgeChallengeSchema>>({
     resolver: zodResolver(judgeChallengeSchema),
     defaultValues: {
-      postIntro:
-        "Last week, I asked people to help me warn a deer that was about to get killed. Some people did an amazing job. See this thread 🧵",
+      postIntro: "",
       firstIntro: `The winner for $${prizes[0]}`,
       secondIntro: `In second place for $${prizes[1]}`,
       thirdIntro: `In third place for $${prizes[2]}`,
       otherIntro: "As honourable mention",
       nextChallengeIntro:
         "If this was fun for you, you can try out this week's challenge",
-      twitterAnnounceLink:
-        "https://x.com/0xcletusigwe/status/1848000049101348894",
-      twitterNextAnnounceLink:
-        "https://x.com/0xcletusigwe/status/1848000049101348894",
-      threadsAnnounceLink:
-        "https://www.threads.net/@0xcletusigwe/post/DBbHkOfNCl7",
-      threadsNextAnnounceLink:
-        "https://www.threads.net/@0xcletusigwe/post/DBbHkOfNCl7",
+      twitterAnnounceLink: "",
+      twitterNextAnnounceLink: "",
+      threadsAnnounceLink: "",
+      threadsNextAnnounceLink: "",
+
       // twitterAnnounceLink: "https://x.com/Vjeux/status/1843306532219539839",
       // twitterNextAnnounceLink: "https://x.com/Vjeux/status/1843306532219539839",
       // threadsAnnounceLink: "https://www.threads.net/@vjeux/post/DA08w9RPjd_",
@@ -160,8 +156,8 @@ const JudgeChallenge = ({
         description: "Watch the server logs for realtime info",
         style: { backgroundColor: "#F59E0B", color: "black" },
       });
-      await new Promise((resolve) => setTimeout(resolve, 15000));
-      continue;
+      // await new Promise((resolve) => setTimeout(resolve, 15000));
+      // continue;
       combinedData.postToWebsite = website as "threads" | "twitter" | "github";
       const announcement = await fetch("/api/announce_winners", {
         method: "POST",
@@ -193,7 +189,6 @@ const JudgeChallenge = ({
           variant: "destructive",
         });
       }
-      break;
     }
 
     setIsSubmitting(false);

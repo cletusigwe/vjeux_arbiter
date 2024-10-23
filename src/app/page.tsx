@@ -181,22 +181,20 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-5 ">
             <div className="flex gap-3">
-              {/* {!isTwitterAuthenticated && ( */}
               <a
                 href="/api/twitter/auth"
                 className="text-sm text-markdown_blue border-b border-b-markdown_blue"
               >
-                authenticate X/twitter
+                {isTwitterAuthenticated && "re"}authenticate X/twitter
               </a>
-              {/* // )} */}
-              {/* {!isThreadsAuthenticated && ( */}
+
               <a
                 href="/api/threads/auth"
                 className="text-sm text-markdown_blue border-b border-b-markdown_blue"
               >
-                authenticate Meta Threads
+                {isThreadsAuthenticated && "re"}authenticate Meta Threads
               </a>
-              {/* )} */}
+
               {/* {!isGithubAuthenticated && (
                 <a
                   href="/api/github/auth"
