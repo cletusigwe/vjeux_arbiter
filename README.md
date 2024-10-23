@@ -91,6 +91,8 @@ The following permissions are needed on each platform token:
 ##### 2. Setup SSL Root Certificates in ./certificates/root_certificates
 
 ```sh
+mkdir -p certificates/root_certificates
+
 cd certificates/root_certificates
 
 openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem
@@ -130,15 +132,19 @@ pip install oauthlib requests requests-oauthlib
 
 EDIT `.env` by setting `PYTHON_PATH=path_to_venv/bin/python`
 
-##### 7. Create Necessary directories
+##### 7. Create Necessary files and directories
 
 ```sh
-mkdir downloaded_videos
-mkdir processed_videos
-mkdir challenge_images
-mkdir logs
+touch db.json
+mkdir downloaded_videos processed_videos challenge_images logs
 ```
 
+##### 8. Remember to set auth callback url in your Twitter/Thread Developer portal
+
+1. For twitter, auth callback is `/api/twitter/callback`
+2. For threads, auth callback is `/api/threads/callback`
+
+> remember that your signed certificates and `/etc/hosts` modification means that  the full url is something like `https://vjeuxarbiter.com/api/threads/callback`
 
 ### Running the server
 
