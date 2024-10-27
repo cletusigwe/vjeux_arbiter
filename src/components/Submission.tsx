@@ -84,7 +84,7 @@ const Submission = ({
 }: Props) => {
   const [showDetails, setShowDetails] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: position });
+    useSortable({ id: position.toString() });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -195,7 +195,11 @@ const Submission = ({
           </div>
         </div>
       </div>
-      <div {...attributes} {...listeners} className="bg-neutral-800 p-1">
+      <div
+        {...attributes}
+        {...listeners}
+        className="bg-neutral-800 p-1 cursor-grabbing"
+      >
         <Grip className="size-8 text-neutral-400" />
       </div>
     </div>

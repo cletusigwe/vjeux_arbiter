@@ -64,7 +64,7 @@ const JudgeChallenge = ({
       githubUserName: submission.authorUsername,
       githubProfileUrl: submission.authorProfileUrl,
       comment: "",
-      videoId: "",
+      videoId: `${index + 1} video`,
     }))
   );
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -213,19 +213,30 @@ const JudgeChallenge = ({
     })
   );
   function handleDragStart(event: DragStartEvent) {
+    console.log("start", event);
     setActiveId(parseInt(event.active.id as string, 10));
   }
   function handleDragEnd(event: DragEndEvent) {
-    setActiveId(null);
-
     const { active, over } = event;
 
+    setActiveId(null);
+
+    console.log(active, over);
+
     if (over && active.id !== over.id) {
+      const oldIndex = parseInt(active.id as string, 10);
+      const newIndex = parseInt(over.id as string, 10);
+
       setSubmissions((submissions) => {
         if (submissions) {
-          const oldIndex = parseInt(active.id as string, 10);
-          const newIndex = parseInt(over.id as string, 10);
-          return arrayMove(submissions, oldIndex, newIndex);
+          const newSubmissions = arrayMove(submissions, oldIndex, newIndex);
+          const newSubmissionData = arrayMove(
+            submissionData,
+            oldIndex,
+            newIndex
+          );
+          setSubmissionData(newSubmissionData);
+          return newSubmissions;
         }
         return null;
       });
@@ -276,7 +287,9 @@ const JudgeChallenge = ({
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={submissions.map((_, index) => index.toString())}
+              items={submissions.map((_, index) => {
+                return index.toString();
+              })}
               strategy={verticalListSortingStrategy}
             >
               {submissions.map((submission, index) => (
