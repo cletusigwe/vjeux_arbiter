@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { set } from "@/lib/db_utils";
+import { access } from "fs";
 
 const THREADS_APP_ID = process.env.THREADS_APP_ID!;
 const THREADS_APP_SECRET = process.env.THREADS_APP_SECRET!;
-const TOKEN_URL = "https://graph.threads.net/oauth/access_token";
+const SHORT_TOKEN_URL = "https://graph.threads.net/oauth/access_token";
+const LONG_TOKEN_URL = "https://graph.threads.net/access_token";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest) {
   formData.append("code", code);
 
   try {
-    const tokenResponse = await fetch(TOKEN_URL, {
+    const shortLivedTokenResponse = await fetch(SHORT_TOKEN_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -35,17 +37,38 @@ export async function GET(request: NextRequest) {
       body: formData.toString(),
     });
 
-    if (!tokenResponse.ok) {
-      throw new Error(`Token fetch error: ${tokenResponse.statusText}`);
+    if (!shortLivedTokenResponse.ok) {
+      throw new Error(
+        `Short Lived Token fetch error: ${shortLivedTokenResponse.statusText}`
+      );
     }
 
-    const tokenData = await tokenResponse.json();
-    console.log(tokenData);
-    const accessToken = tokenData.access_token;
-    const userId = tokenData.user_id;
+    const shortLivedTokenData = await shortLivedTokenResponse.json();
+    // console.log(tokenData);
+    const shortLivedAccessToken = shortLivedTokenData.access_token;
+    const userId = shortLivedTokenData.user_id;
 
-    await set("threads_access_token", accessToken);
+    const longLivedTokenRequestData = new URLSearchParams({
+      grant_type: "th_exchange_token",
+      client_secret: THREADS_APP_SECRET,
+      access_token: shortLivedAccessToken,
+    });
+    const longLivedTokenResponse = await fetch(
+      `${LONG_TOKEN_URL}?${longLivedTokenRequestData.toString()}`
+    );
+
+    if (!longLivedTokenResponse.ok) {
+      throw new Error(
+        `Long Lived Token fetch error: ${shortLivedTokenResponse.statusText}`
+      );
+    }
+
+    const longLivedTokenData = await longLivedTokenResponse.json();
+    const longLivedAccessToken = longLivedTokenData.access_token;
+
+    await set("threads_access_token", longLivedAccessToken);
     await set("threads_user_id", userId);
+    
     return NextResponse.redirect(
       new URL("/", process.env.NEXT_PUBLIC_BASE_URL)
     );
