@@ -154,9 +154,9 @@ export async function POST(req: Request) {
       }
     );
     const twitterPostJson = await twitterPostResult.json();
-    console.log(twitterPostJson.message);
-    const url =
-      "https://github.com/cletusigwe/weekly-challenge-38-agi-in-brainfuck";
+    // console.log(twitterPostJson.message);
+    // const url =
+    //   "https://github.com/cletusigwe/weekly-challenge-38-agi-in-brainfuck";
     const threadsPostResult = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/threads/post`,
       {
@@ -168,7 +168,7 @@ export async function POST(req: Request) {
           posts: [
             { post: social_media_post, imageUrl },
             {
-              post: `Check out the full details and how to submit:\n${url}`,
+              post: `Check out the full details and how to submit:\n${repoData.html_url}`,
             },
           ],
         }),
