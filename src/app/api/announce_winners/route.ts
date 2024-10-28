@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     submissionData,
     postToWebsite,
     repo,
+    prizes,
   } = (await req.json()) as ChallengeAnnouncementData;
 
   const twitterThread: { tweet: string; videoId?: string }[] = [
@@ -64,11 +65,17 @@ export async function POST(req: Request) {
     { post: `${postIntro}`, quotePost: threadsAnnounceLink },
   ];
 
-  const githubPosts: { message: string; videoId?: string }[] = [];
+  const githubPosts: {
+    issueUrl: string;
+    issueReply?: string;
+    message: string;
+    videoId: string;
+    videoUrl: string;
+  }[] = [];
 
   for (const submission of submissionData) {
     //save video and thumbnail
-    console.log("Saving Video and Thumbnail to your file storage repo")
+    console.log("Saving Video and Thumbnail to your file storage repo");
     const saveVideoToGithubResult = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/github/save_demo`,
       {
@@ -76,14 +83,14 @@ export async function POST(req: Request) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ videoId: submission.videoId }),
+        body: JSON.stringify({ videoId: submission.videoInfo.id }),
       }
     );
     if (!saveVideoToGithubResult.ok) {
       const errorData = await saveVideoToGithubResult.json();
       console.log(errorData);
       throw new Error(
-        `Error while trying to save the demo video and thumbnail with ID: ${submission.videoId} to github: ${errorData.error.message}`
+        `Error while trying to save the demo video and thumbnail with ID: ${submission.videoInfo.id} to github: ${errorData.error.message}`
       );
     }
 
@@ -120,60 +127,71 @@ export async function POST(req: Request) {
 
     if (submission.position == 0) {
       twitterThread.push({
-        tweet: `${firstIntro} is @${tweetBody}`,
-        videoId: submission.videoId,
+        tweet: `${firstIntro} is ${tweetBody}`,
+        videoId: submission.videoInfo.id,
       });
 
       metaThread.push({
         post: `${firstIntro} is ${threadsPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
 
       githubPosts.push({
         message: `${firstIntro} is ${githubPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
+        videoUrl: submission.videoInfo.url,
+        issueUrl: submission.issueLink,
+        issueReply: `Congratz on being first place winning $${prizes[0]}! Let me know how you want to receive the money either on twitter (@vjeux) or email: vjeux@gmail.com`,
       });
     } else if (submission.position == 1) {
       twitterThread.push({
         tweet: `${secondIntro} is ${tweetBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
 
       metaThread.push({
         post: `${secondIntro} is ${threadsPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
 
       githubPosts.push({
         message: `${secondIntro} is ${githubPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
+        videoUrl: submission.videoInfo.url,
+        issueUrl: submission.issueLink,
+        issueReply: `Congratz on being second place winning $${prizes[1]}! Let me know how you want to receive the money either on twitter (@vjeux) or email: vjeux@gmail.com`,
       });
     } else if (submission.position == 2) {
       twitterThread.push({
         tweet: `${thirdIntro} is ${tweetBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
       metaThread.push({
         post: `${thirdIntro} is ${threadsPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
       githubPosts.push({
         message: `${thirdIntro} is ${githubPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
+        videoUrl: submission.videoInfo.url,
+        issueUrl: submission.issueLink,
+        issueReply: `Congratz on being third place winning $${prizes[2]}! Let me know how you want to receive the money either on twitter (@vjeux) or email: vjeux@gmail.com`,
       });
     } else {
       twitterThread.push({
         tweet: `${otherIntro} is ${tweetBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
       metaThread.push({
         post: `${otherIntro} is ${threadsPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
       });
 
       githubPosts.push({
         message: `${otherIntro} is ${githubPostBody}`,
-        videoId: submission.videoId,
+        videoId: submission.videoInfo.id,
+        videoUrl: submission.videoInfo.url,
+        issueUrl: submission.issueLink,
       });
     }
   }

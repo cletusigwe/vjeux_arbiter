@@ -3,17 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
+import { VideoInfo } from "@/lib/consts";
 
 interface Props {
   username: string;
-  videoId: string;
-  setVideoId: (value: string) => void;
+  videoInfo: VideoInfo;
+  setVideoInfo: (value: VideoInfo) => void;
 }
 
-const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
+const ProcessVideo = ({
+  username,
+  videoInfo,
+  setVideoInfo,
+}: Props) => {
   const { toast } = useToast();
   const [isFile, setIsFile] = useState(false);
-  const [videoUrl, setVideoUrl] = useState("");
+  // const [videoUrl, setVideoUrl] = useState("");
   const [logs, setLogs] = useState<string[]>([]);
   const [showLogs, setShowLogs] = useState(false);
   const [hasStartedProcessing, setHasStartedProcessing] = useState(false);
@@ -22,7 +27,7 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function processVideo() {
-    if (!videoUrl && !isFile) {
+    if (!videoInfo.url && !isFile) {
       toast({
         title: "Validation Error",
         description: `Please provide a valid video URL or upload a video for ${username}.`,
@@ -45,11 +50,19 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
         return;
       }
     } else {
-      submissionData.append("url", videoUrl);
+      submissionData.append("url", videoInfo.url);
     }
 
     setHasStartedProcessing(true);
     setIsProcessing(true);
+    function isValidUrl(str: string) {
+      try {
+        new URL(str);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
 
     try {
       const response = await fetch("/api/process_video", {
@@ -60,7 +73,10 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
       if (response.ok) {
         const result = await response.json();
         const videoId = result.videoId;
-        setVideoId(videoId);
+        setVideoInfo({
+          id: videoId,
+          url: isValidUrl(videoInfo.url) ? videoInfo.url : "",
+        });
         toast({
           title: "Video Processing Started",
           description: `${username}'s video is being processed`,
@@ -139,8 +155,10 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
           />
           <Input
             id={`video_for_${username}`}
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
+            value={videoInfo.url}
+            onChange={(e) =>
+              setVideoInfo({ id: videoInfo.id, url: e.target.value })
+            }
             type="text"
             placeholder="Enter The Link To The Demo Video For Processing"
             className={`w-96 ${isFile ? "hidden" : ""}`}
@@ -173,7 +191,7 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
                 className="data-[state=checked]:bg-orange data-[state=unchecked]:bg-neutral-500 opacity-80"
               />
             </div>
-            {videoId && (
+            {videoInfo.id && (
               <button
                 onClick={() => setDoneProcessing(true)}
                 className="w-fit flex gap-2 text-xs"
@@ -182,7 +200,7 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
                   use existing video with id{" "}
                 </span>
                 <div className="text-green-600 whitespace-nowrap w-24 overflow-clip text-ellipsis">
-                  {videoId}
+                  {videoInfo.id}
                 </div>
               </button>
             )}
@@ -207,7 +225,7 @@ const ProcessVideo = ({ username, videoId, setVideoId }: Props) => {
           <div className="flex flex-col gap-1 text-neutral-400">
             <p className="text-xs ">video processed and ready.</p>
             <p className="text-xs ml-5">
-              VIDEO_ID is <span className="text-green-600">{videoId}</span>
+              VIDEO_ID is <span className="text-green-600">{videoInfo.id}</span>
             </p>
           </div>
           <button

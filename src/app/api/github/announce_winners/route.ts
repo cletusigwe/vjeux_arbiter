@@ -12,8 +12,16 @@ export async function POST(request: Request) {
     const {
       winners,
       repo,
-    }: { winners: { message: string; videoId: string }[]; repo: string } =
-      await request.json();
+    }: {
+      winners: {
+        issueUrl: string;
+        issueReply?: string;
+        message: string;
+        videoId: string;
+        videoUrl: string;
+      }[];
+      repo: string;
+    } = await request.json();
 
     const readme = await octokit.repos.getContent({
       owner: username,
@@ -29,10 +37,13 @@ export async function POST(request: Request) {
     const firstSectionEnd = readmeContent.indexOf("\n### Prizes:");
 
     const winnerAnnouncements = winners
-      .map(
-        (winner) =>
-          `* ${winner.message}\n [![demo_video](https://raw.githubusercontent.com/${username}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/thumbnails/${winner.videoId}.jpg)](https://raw.githubusercontent.com/${username}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/videos/${winner.videoId}.mp4)`
-      )
+      .map((winner) => {
+        const videoUrl =
+          winner.videoUrl.trim().length > 0
+            ? winner.videoUrl
+            : `https://raw.githubusercontent.com/${username}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/videos/${winner.videoId}.mp4`;
+        return `* ${winner.message}\n [![demo_video](https://raw.githubusercontent.com/${username}/${process.env.GITHUB_DEMO_VIDEOS_REPO}/refs/heads/main/thumbnails/${winner.videoId}.jpg)](${videoUrl})`;
+      })
       .join("\n");
     const updatedReadme =
       readmeContent.slice(0, firstSectionEnd) +
@@ -40,6 +51,21 @@ export async function POST(request: Request) {
       winnerAnnouncements +
       readmeContent.slice(firstSectionEnd);
 
+    for (const winner of winners) {
+      //reply the winners that they have won and should contact you for their prize
+      if (winner.issueReply) {
+        const issueNumber = winner.issueUrl.split("/").pop();
+
+        if (issueNumber) {
+          await octokit.issues.createComment({
+            owner: username,
+            repo: repo,
+            issue_number: parseInt(issueNumber, 10),
+            body: winner.issueReply,
+          });
+        }
+      }
+    }
     await octokit.repos.createOrUpdateFileContents({
       owner: username,
       repo: repo,

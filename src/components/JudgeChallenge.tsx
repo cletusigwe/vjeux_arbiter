@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, act } from "react";
 import Submission from "./Submission";
 
 import {
@@ -64,7 +64,9 @@ const JudgeChallenge = ({
       githubUserName: submission.authorUsername,
       githubProfileUrl: submission.authorProfileUrl,
       comment: "",
-      videoId: `${index + 1} video`,
+      videoInfo: { id: "", url: "" },
+      // videoUrl: "",
+      // videoId: `${index + 1} video`,
     }))
   );
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -111,9 +113,13 @@ const JudgeChallenge = ({
       const commentResult = singleSubmissionSchema.shape.comment.safeParse(
         submission.comment
       );
+
       const videoIdResult = singleSubmissionSchema.shape.videoId.safeParse(
-        submission.videoId
+        submission.videoInfo.id
       );
+      // const videoUrlResult = singleSubmissionSchema.shape.videoId.safeParse(
+      //   submission.videoInfo.url
+      // );
 
       if (!commentResult.success) {
         errors.push(
@@ -122,7 +128,7 @@ const JudgeChallenge = ({
       }
       if (!videoIdResult.success) {
         errors.push(
-          `${submissions[index].authorUsername}'s submision has: Invalid video id`
+          `${submissions[index].authorUsername}'s submision has: Invalid video id. Process the video to generate an id`
         );
       }
     });
@@ -148,8 +154,12 @@ const JudgeChallenge = ({
       ...values,
       submissionData,
       repo: repo,
+      prizes: prizes,
       postToWebsite: "",
     };
+    //https://youtu.be/GF2TWet47-0?si=oLtKKclBhVkyu13C
+
+    // console.log(combinedData)
     for (const website of ["github", "twitter", "threads"]) {
       toast({
         title: `Announcing results on ${website}`,
@@ -197,7 +207,7 @@ const JudgeChallenge = ({
   const updateSubmissionData = (
     index: number,
     field: keyof SubmissionData,
-    value: string
+    value: SubmissionData[keyof SubmissionData]
   ) => {
     setSubmissionData((prevData) => {
       const newData = [...prevData];
@@ -213,7 +223,7 @@ const JudgeChallenge = ({
     })
   );
   function handleDragStart(event: DragStartEvent) {
-    console.log("start", event);
+    // console.log("start", event);
     setActiveId(parseInt(event.active.id as string, 10));
   }
   function handleDragEnd(event: DragEndEvent) {
@@ -221,7 +231,7 @@ const JudgeChallenge = ({
 
     setActiveId(null);
 
-    console.log(active, over);
+    // console.log(active, over);
 
     if (over && active.id !== over.id) {
       const oldIndex = parseInt(active.id as string, 10);
@@ -294,17 +304,17 @@ const JudgeChallenge = ({
             >
               {submissions.map((submission, index) => (
                 <Submission
-                  key={index}
+                  key={submission.authorUsername}
                   position={index}
                   {...submission}
                   comment={submissionData[index].comment}
                   setComment={(value) =>
                     updateSubmissionData(index, "comment", value)
                   }
-                  videoId={submissionData[index].videoId}
-                  setVideoId={(value) =>
-                    updateSubmissionData(index, "videoId", value)
-                  }
+                  videoInfo={submissionData[index].videoInfo}
+                  setVideoInfo={(value) => {
+                    updateSubmissionData(index, "videoInfo", value);
+                  }}
                 />
               ))}
             </SortableContext>
@@ -317,10 +327,10 @@ const JudgeChallenge = ({
                   setComment={(value) =>
                     updateSubmissionData(activeId, "comment", value)
                   }
-                  videoId={submissionData[activeId].videoId}
-                  setVideoId={(value) =>
-                    updateSubmissionData(activeId, "videoId", value)
-                  }
+                  videoInfo={submissionData[activeId].videoInfo}
+                  setVideoInfo={(value) => {
+                    updateSubmissionData(activeId, "videoInfo", value);
+                  }}
                 />
               ) : null}
             </DragOverlay>

@@ -15,6 +15,12 @@ export interface ChallengeResult {
   deadline: string | null;
   prizes: [number, number, number];
 }
+
+export interface VideoInfo {
+  id: string;
+  url: string;
+}
+
 export interface SubmissionData {
   position: number;
   socials: { provider: string; url: string }[];
@@ -22,7 +28,7 @@ export interface SubmissionData {
   githubUserName: string;
   githubProfileUrl: string;
   comment: string;
-  videoId: string;
+  videoInfo: VideoInfo;
 }
 export interface JudgeResult {
   postIntro: string;
@@ -43,6 +49,7 @@ export interface ChallengeAnnouncementData extends JudgeResult {
   submissionData: SubmissionData[];
   repo: string;
   postToWebsite: "twitter" | "threads" | "github" | "";
+  prizes: [number, number, number];
 }
 export const singleSubmissionSchema = z.object({
   comment: z.string().min(2),

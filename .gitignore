@@ -46,3 +46,4 @@ challenge_images/*
 logs/*
 dist
 .obsidian
+*.mp4

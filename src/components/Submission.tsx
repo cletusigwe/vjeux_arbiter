@@ -12,15 +12,15 @@ import { Grip } from "lucide-react";
 import AddComment from "./AddComment";
 import ProcessVideo from "./ProcessVideo";
 import Image from "next/image";
-import type { IssueData } from "@/lib/consts";
+import type { IssueData, VideoInfo } from "@/lib/consts";
 import Markdown from "react-markdown";
 
 interface Props extends IssueData {
   position: number;
   comment: string;
   setComment: (value: string) => void;
-  videoId: string;
-  setVideoId: (value: string) => void;
+  videoInfo: VideoInfo;
+  setVideoInfo: (value: VideoInfo) => void;
 }
 function formatIsoDate(isoString: string) {
   // Split the date and time components
@@ -79,8 +79,8 @@ const Submission = ({
   issueUrl,
   comment,
   setComment,
-  videoId,
-  setVideoId,
+  videoInfo,
+  setVideoInfo,
 }: Props) => {
   const [showDetails, setShowDetails] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -95,6 +95,8 @@ const Submission = ({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      data-no-dnd="false"
       className="w-full h-fit mb-12 flex items-end"
     >
       <div className="border  border-neutral-700 p-3 flex-grow">
@@ -180,8 +182,8 @@ const Submission = ({
         <div className="w-full mt-10 flex justify-between">
           <ProcessVideo
             username={authorUsername}
-            videoId={videoId}
-            setVideoId={setVideoId}
+            videoInfo={videoInfo}
+            setVideoInfo={setVideoInfo}
           />
           <div className="flex h-fit">
             <p className="font-semibold text-neutral-500 mx-5 text-sm h-fit">
@@ -195,11 +197,7 @@ const Submission = ({
           </div>
         </div>
       </div>
-      <div
-        {...attributes}
-        {...listeners}
-        className="bg-neutral-800 p-1 cursor-grabbing"
-      >
+      <div {...listeners} className="bg-neutral-800 p-1 cursor-grabbing">
         <Grip className="size-8 text-neutral-400" />
       </div>
     </div>
