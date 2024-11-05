@@ -78,10 +78,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!response.ok) {
-        console.log(
-          `--------------------------------\nTwitter is sending back an error message that is mostly misleading, just ignore it: ${response.statusText}\n--------------------------------------------------\n`
-        );
-        throw new Error(`Error posting tweet: ${response.statusText}`);
+        throw new Error(await response.text());
       }
 
       const result = await response.json();
@@ -106,3 +103,53 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// import { NextResponse } from "next/server";
+// import { get } from "@/lib/db_utils";
+
+// const TWEET_URL = "https://api.twitter.com/2/tweets";
+// const REPLY_TO_TWEET_ID = "1853194718902878372";
+// const TWEET_TEXT =
+//   "https://open.spotify.com/track/7pKo3vzmrlG2KcRVqzdoA5";
+
+// export async function GET() {
+//   const accessToken = await get("twitter_access_token");
+
+//   try {
+//     const body: {
+//       text: string;
+//       reply: { in_reply_to_tweet_id: string };
+//     } = {
+//       text: TWEET_TEXT,
+//       reply: { in_reply_to_tweet_id: REPLY_TO_TWEET_ID },
+//     };
+
+//     const response = await fetch(TWEET_URL, {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${accessToken}`,
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(body),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(await response.text());
+//     }
+
+//     const result = await response.json();
+//     console.log(result);
+//     const username = process.env.TWITTER_USERNAME;
+
+//     return NextResponse.json({
+//       message: "Reply posted successfully",
+//       tweetUrl: `https://x.com/${username}/status/${result.data.id}`,
+//     });
+//   } catch (error) {
+//     console.error("Error posting tweet:", error);
+//     return NextResponse.json(
+//       { error: "Failed to post tweet" },
+//       { status: 500 }
+//     );
+//   }
+// }
