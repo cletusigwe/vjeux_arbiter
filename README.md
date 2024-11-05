@@ -189,5 +189,8 @@ npm install
 npm run dev
 ```
 
+**Make sure nginx is running as a service and then visit https://vjeuxarbiter.com on your browser**
+
+
 \*\*\* am thinking that it would be more organised to store submission videos for each challenge in the challenge's repo instead of in a different seperate repo.
 
